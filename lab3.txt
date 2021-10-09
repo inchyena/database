@@ -279,15 +279,10 @@ LIMIT 1;
 --c--
 select * from course;
 
-select dept_name, COUNT(course_id) as number_courses
-from course
+select dept_name, COUNT(course_id) as courses_number from section
 GROUP BY dept_name
-HAVING COUNT(course_id) =
-       (select COUNT(course_id) as number_courses
-        from course
-        GROUP BY dept_name
-        ORDER BY number_courses ASC
-        LIMIT 1);
+ORDER BY courses_number ASC
+LIMIT 1;
 	
 --d--
 select * from student;
@@ -315,14 +310,10 @@ WHERE year = 2017) AND year = 2018);
 select * from student where dept_name = 'Comp. Sci.' and ID = some (select ID from takes where grade = 'A')
 union  select * from student where dept_name = 'Comp. Sci.' and ID = some (select ID from takes where grade = 'A-') order by name;
 
-select name from instructor where ID = some(select i_ID from advisor where s_ID = some( select ID from takes where grade != 'A' OR grade !='A-' OR grade !='B+' OR grade !='B'));
+select name from instructor where ID = some(select i_ID from advisor where s_ID = some( select ID from takes where grade != 'C' OR grade !='D' OR grade !='F'));
 
 select distinct on(dept_name) dept_name from student where ID = some (select ID from takes where grade != 'F' or grade != 'C');
-
-select * from instructor
-    WHERE id NOT IN (SELECT id FROM teaches
-    WHERE (course_id,sec_id,semester,year) IN (SELECT course_id,sec_id,semester,year FROM takes WHERE grade = 'A'));
-    
+--d--nz--
 select * from course where course_id = some (select course_id from section where time_slot_id = some (select time_slot_id
     from time_slot  where end_hr < 13));
 
