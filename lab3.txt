@@ -269,24 +269,47 @@ select * from student where name like '%a' or name like '%e' or name like '%i' o
 select * from course where course_id = some ( select course_id from prereq where prereq_id = 'CS-101');
 
 ---2---
+--a--
 select dept_name, avg(salary) from instructor group by dept_name order by avg(salary) ASC ;
+--b--
+select  building, COUNT(course_id) as courses_number from section
+GROUP BY building
+ORDER BY courses_number DESC
+LIMIT 1;
+--c--
+select * from course;
 
-select building
-from (select building, count(course_id)
-    from section
-    group by building) as foo
-where foo.count = (select max(cnt.count)
-    from (select building, count(course_id)
-        from section
-        group by building) as cnt);
+select dept_name, COUNT(course_id) as number_courses
+from course
+GROUP BY dept_name
+HAVING COUNT(course_id) =
+       (select COUNT(course_id) as number_courses
+        from course
+        GROUP BY dept_name
+        ORDER BY number_courses ASC
+        LIMIT 1);
+	
+--d--
+select * from student;
+SELECT * from takes;
 
+SELECT student.id, student.name FROM student
+WHERE student.id IN (SELECT takes.id FROM takes
+WHERE course_id IN
+      (SELECT course_id FROM course
+        WHERE dept_name LIKE 'Comp%Sci%')
+GROUP BY takes.id
+HAVING COUNT(course_id) > 3);
 
-select * from instructor where dept_name = 'Biology'
-union select * from instructor where dept_name = 'Philosophy'
-union select * from instructor where dept_name = 'Music';
+--e--
+SELECT * FROM instructor
+WHERE dept_name IN ('Biology','Philosophy','Music');
 
-select * from instructor where ID = some(select ID from teaches where year = '2018' )
-except select * from instructor where ID = some(select ID from teaches where year = '2017');
+--f--
+SELECT * FROM instructor
+    WHERE id IN (SELECT DISTINCT(teaches.id) FROM teaches
+WHERE id NOT IN (SELECT DISTINCT (id) FROM teaches
+WHERE year = 2017) AND year = 2018);
 
 ---3---
 select * from student where dept_name = 'Comp. Sci.' and ID = some (select ID from takes where grade = 'A')
