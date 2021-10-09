@@ -319,6 +319,10 @@ select name from instructor where ID = some(select i_ID from advisor where s_ID 
 
 select distinct on(dept_name) dept_name from student where ID = some (select ID from takes where grade != 'F' or grade != 'C');
 
+select * from instructor
+    WHERE id NOT IN (SELECT id FROM teaches
+    WHERE (course_id,sec_id,semester,year) IN (SELECT course_id,sec_id,semester,year FROM takes WHERE grade = 'A'));
+    
 select * from course where course_id = some (select course_id from section where time_slot_id = some (select time_slot_id
     from time_slot  where end_hr < 13));
 
