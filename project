@@ -1,0 +1,180 @@
+--TASK2--
+create table client_info
+( client_id integer primary key not null,
+first_name varchar not null,
+last_name varchar not null,
+address varchar not null,
+age integer not null,
+phone_number integer not null,
+warehouse_number varchar not null,
+foreign key (address) references  address_info(address),
+foreign key (warehouse_number) references warehouse(warehouse_number));
+
+create table address_info
+( address varchar primary key not null,
+street_name varchar not null,
+home_number varchar not null
+);
+ create table client_account
+( client_login varchar primary key not null,
+client_id integer not null,
+foreign key (client_id) references client_info(client_id),
+foreign key (client_login) references client_account(client_login));
+
+create table client_acc_info
+(client_login varchar primary key not null,
+client_password varchar not null,
+client_payment_method varchar not null check (client_payment_method='cash' or client_payment_method='card'),
+);
+
+create table payment_info
+(client_card varchar primary key not null,
+client_login varchar not null,
+foreign key (client_login) references client_account(client_login));
+
+create table client_card_info
+(card_number integer primary key not null,
+exp_date date not null,
+CVV_code integer not null,
+name_on_card varchar not null);
+
+create table order
+(order_id integer primary key not null,
+address varchar not null,
+order_name varchar not null,
+company varchar not null,
+client_login varchar not null,
+foreign key (address) references address_info(address),
+foreign key (client_login) references client_account(client_login));
+
+create table order_info
+(order_id integer primary key not null,
+order_name varchar not null,
+arrival_date date not null,
+arrival_address varchar not null,
+client_payment_method varchar not null,
+order_date date not null,
+foreign key (client_payment_method) references client_acc_info(client_payment_method),
+foreign key (order_name) references product(order_name));
+
+create table product
+(order_name varchar not null primary key,
+company varchar not null,
+price integer not null,
+foreign key (company) references order(company));
+
+create table warehouse
+(warehouse_number integer primary key not null,
+warehouse_city varchar not null,
+courier_id integer not null,
+foreign key (courier_id) references courier(courier_id)
+);
+
+create table courier
+(courier_id integer primary key not null,
+courier_name varchar not null);
+
+create table transport_create
+(order_id integer primary key not null,
+transport_number varchar not null,
+foreign key (transport_number)references transport_info(transport_number),
+foreign key (order_id)references order_info(order_id));
+
+create table transport_info
+(transport_number integer primary key not null,
+transport_type varchar not null,
+courier_id varchar not null,
+foreign key (courier_id) references courier(courier_id));
+
+create table track_create
+(status_id varchar primary key not null,
+order_id integer not null,
+foreign key (order_id)references order_info(order_id),
+foreign key (status_id) references track_info(status_id));
+
+create table track_info
+(status_id varchar primary key not null,
+country varchar not null,
+city varchar not null,
+address varchar not null,
+);
+--Task3--
+insert into client_info
+values('5505','Belka','Strelka','Pulya55','23','776676','1');
+insert into client_info
+values('6606','Aika','Maika','Oui66','34','99999','2');
+insert into address_info
+values('Pulya55','yy','7');
+insert into address_info
+values('Oui66','yc','8');
+insert into client_account
+values('alievain','5505');
+insert into client_account
+values('alievainn','6606');
+insert into client_acc_info
+values('alievain','prekl','card');
+insert into client_acc_info
+values('alievainn','prekll','cash');
+insert into payment_info
+values('76767','alievain');
+insert into payment_info
+values('5657','alievainn');
+insert into client_card_info
+values('76767','09-09-2022','inchi');
+insert into client_card_info
+values('5657','08-09-2025','aii');
+insert into order
+values ('7777','Pulya55','h','toyota','alievain');
+insert into order
+values ('5555','Oui66','j','lexus','alievainn');
+insert into order_info
+values('7777','orderechka','23-09-2022','lozhka','card','05-07-2022');
+insert into order_info
+values('5555','orderechka2','25-09-2022','lozhkayy','cash','03-09-2025');
+insert into product
+values('orderechka','h','67');
+insert into product
+values('orderechka2','j','68');
+insert into warehouse
+values('23','almaty','123');
+insert into warehouse
+values('25','astana','126');
+insert into courier
+values('23','natasha');
+insert into courier
+values('25','nastya');
+insert into transport_create
+values('7777','99');
+insert into transport_create
+values('5555','98');
+insert into transport_info
+values('99','sedan','67');
+insert into transport_info
+values('98','jyp','68');
+insert into track_create
+values('88edet','7777');
+insert into track_create
+values('88edet','5555');
+insert into track_info
+values('88edet','kz','Pulya55');
+insert into track_info
+values('89edet','rus','Oui66');
+--Task4--
+--4.1--A
+with t as (select client_login, o as order_id, transport_number,order_name,order_date from
+        (select transport_create.order_id as o,transport_number,order_name,order_date
+        from transport_create inner join order_info oi on oi.order_id=transport_create.order_id = oi.order_id )
+    as t1 inner join order_info on o=order_info.order_id)
+select * from t
+where order_date ='2021-12-04' and transport_number='T1721';
+--4.1--B
+with t as (select company,order_name,o as order_id,transport_number,order_date from
+    (select transport_create.order_id as o,transport_number,order_date,order_name
+        from transport_create inner join order_info oi on oi.order_id=transport_create.order_id)
+    as t1 inner join order_info on t1.name = order_info.name)
+select*from t
+where order_date='2021-12-03'and transport_number='T1721';
+--4.4--
+select address, count(address) as number_of_customers from client_info group by address
+having count(address)=(select max(cnt)from
+    (select count(address)as cnt from client_info group by address)as t1);
